@@ -1,74 +1,74 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+// import mongoose from 'mongoose';
+// const { Schema } = mongoose;
 
-const userSchema = new Schema(
-  {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true
-    },
+// const userSchema = new Schema(
+//   {
+//     email: {
+//       type: String,
+//       required: true,
+//       unique: true,
+//       lowercase: true,
+//       trim: true
+//     },
 
-      displayName: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true
-    },
+//       displayName: {
+//       type: String,
+//       required: true,
+//       unique: true,
+//       trim: true
+//     },
 
-    username: {
-      type: String,
-      default: ''
-    },
+//     username: {
+//       type: String,
+//       default: ''
+//     },
 
-    passwordHash: {
-      type: String,
-      required: true
-    },
+//     passwordHash: {
+//       type: String,
+//       required: true
+//     },
 
-    gender: {
-      type: String,
-      enum: ['male', 'female'],
-      required: true
-    },
+//     gender: {
+//       type: String,
+//       enum: ['male', 'female'],
+//       required: true
+//     },
 
-    bio: {
-      type: String,
-      default: ''
-    },
+//     bio: {
+//       type: String,
+//       default: ''
+//     },
 
-    avatarUrl: {
-      type: String,
-      default: ''
-    },
+//     avatarUrl: {
+//       type: String,
+//       default: ''
+//     },
 
-    emailVerified: {
-      type: Boolean,
-      default: false
-    },
+//     emailVerified: {
+//       type: Boolean,
+//       default: false
+//     },
 
-    // resetPasswordOtp: {
-    //   type: String,
-    //   default: null
-    // },
+//     // resetPasswordOtp: {
+//     //   type: String,
+//     //   default: null
+//     // },
 
-    // resetPasswordOtpExpires: {
-    //   type: Date,
-    //   default: null
-    // },
+//     // resetPasswordOtpExpires: {
+//     //   type: Date,
+//     //   default: null
+//     // },
 
-    // resetPasswordOtpAttempts: {
-    //   type: Number,
-    //   default: 0
-    // }
-  },
-  {
-    timestamps: true
-  }
-);
+//     // resetPasswordOtpAttempts: {
+//     //   type: Number,
+//     //   default: 0
+//     // }
+//   },
+//   {
+//     timestamps: true
+//   }
+// );
 
-const User = mongoose.model('User', userSchema);
+// const User = mongoose.model('User', userSchema);
 
-export default User;
+// export default User;
