@@ -10,7 +10,7 @@ const authenticate = (req, res, next) => {
     });
   }
 
-  const token = authorization.split("")[1];
+  const token = authorization.split(" ")[1];
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
@@ -27,10 +27,10 @@ const authenticate = (req, res, next) => {
     };
 
     next();
-  } catch {
+  } catch (error) {
     return res.status(401).json({
       status: false,
-      message: "Invalid or expired token",
+      message: error.message,
     });
   }
 };
