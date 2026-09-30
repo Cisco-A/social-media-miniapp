@@ -98,7 +98,7 @@ const natureNouns = [
   "Echo",
 ];
 
-const adjectives = [...quirkyAdjectives, natureAdjectives];
+const adjectives = [...quirkyAdjectives, ...natureAdjectives];
 const nouns = [...quirkyNouns, ...natureNouns];
 
 export const usernameGenerator = () => {

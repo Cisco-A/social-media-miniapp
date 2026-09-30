@@ -1,5 +1,4 @@
 import { useState } from "react";
-import mingleLogo from "../assets/mingle-logo.svg";
 
 const startingProfile = {
   name: "Alex Morgan",
@@ -11,33 +10,27 @@ const startingProfile = {
 
 const posts = [
   {
-    image:
-      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700",
+    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700",
     alt: "Modern building",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=700",
+    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=700",
     alt: "Coffee and notebook",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1448375240586-882707db888b?w=700",
+    image: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=700",
     alt: "Forest path",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=700",
+    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=700",
     alt: "Colorful technology",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=700",
+    image: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=700",
     alt: "City at sunset",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?w=700",
+    image: "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?w=700",
     alt: "Handmade ceramics",
   },
 ];
@@ -62,24 +55,6 @@ function Profile() {
 
   return (
     <div className="profile-page">
-      <header className="topbar">
-        <a className="brand" href="/">
-  <img className="brand-logo" src={mingleLogo} alt="Mingle" />
-</a> 
-
-        <nav className="main-nav" aria-label="Main navigation">
-          <a href="/">Feed</a>
-          <a href="/">Create Post</a>
-          <a className="nav-active" href="/profile">
-            Profile
-          </a>
-        </nav>
-
-        <div className="topbar-user">
-          Alex Morgan <span className="small-avatar">A</span>
-        </div>
-      </header>
-
       <main className="profile-content">
         <section className="profile-hero" aria-label="Profile summary">
           <div className="cover-photo">
@@ -106,9 +81,18 @@ function Profile() {
             </div>
 
             <div className="profile-stats">
-              <div><strong>18</strong><span>Posts</span></div>
-              <div><strong>1,420</strong><span>Followers</span></div>
-              <div><strong>389</strong><span>Following</span></div>
+              <div>
+                <strong>18</strong>
+                <span>Posts</span>
+              </div>
+              <div>
+                <strong>1,420</strong>
+                <span>Followers</span>
+              </div>
+              <div>
+                <strong>389</strong>
+                <span>Following</span>
+              </div>
             </div>
           </div>
         </section>
@@ -125,11 +109,7 @@ function Profile() {
 
             <label>
               Display Name
-              <input
-                name="name"
-                value={profile.name}
-                onChange={handleChange}
-              />
+              <input name="name" value={profile.name} onChange={handleChange} />
             </label>
 
             <label>
@@ -150,7 +130,9 @@ function Profile() {
                 value={profile.bio}
                 onChange={handleChange}
               />
-              <span className="character-count">{profile.bio.length} / 160</span>
+              <span className="character-count">
+                {profile.bio.length} / 160
+              </span>
             </label>
 
             <div className="two-columns">
@@ -175,7 +157,11 @@ function Profile() {
 
             <div className="security-note">
               <span className="security-icon">✓</span>
-              <span><strong>Two-Factor Authentication</strong><br />Enabled via Authenticator App</span>
+              <span>
+                <strong>Two-Factor Authentication</strong>
+                <br />
+                Enabled via Authenticator App
+              </span>
             </div>
 
             <div className="form-actions">
@@ -195,13 +181,17 @@ function Profile() {
             </div>
 
             {savedMessage && (
-              <p className="saved-message" role="status">{savedMessage}</p>
+              <p className="saved-message" role="status">
+                {savedMessage}
+              </p>
             )}
           </form>
 
           <section className="posts-section">
             <div className="posts-toolbar">
-              <button className="tab-active" type="button">▦ Posts <span>18</span></button>
+              <button className="tab-active" type="button">
+                ▦ Posts <span>18</span>
+              </button>
               <button type="button">♡ Liked Posts</button>
               <button type="button">♧ Saved</button>
               <span className="sort-label">Sorted by Latest</span>
@@ -219,11 +209,6 @@ function Profile() {
           </section>
         </section>
       </main>
-
-      <footer className="page-footer">
-        <span><strong>Mingle</strong> — Simple, calm social interactions.</span>
-        <span>© 2026 Mingle Inc. All rights reserved.</span>
-      </footer>
     </div>
   );
 }
