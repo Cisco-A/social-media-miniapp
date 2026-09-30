@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useParams } from "react-router";
-import mingleLogo from "../assets/mingle-logo.svg";
 
 const samplePost = {
   author: "Alex Morgan",
@@ -9,8 +8,7 @@ const samplePost = {
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&crop=faces",
   postedAt: "1 day ago",
   text: "Exploring the quiet coastlines this afternoon. The ocean breeze clears the mind like nothing else! 🌊🌤️",
-  image:
-    "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1400",
+  image: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1400",
   imageAlt: "Ocean waves along a quiet coastline",
   location: "Big Sur, California",
   likes: 328,
@@ -60,10 +58,10 @@ function Post() {
   const [commentText, setCommentText] = useState("");
 
   function handleLike() {
-  const change = liked ? -1 : 1;
-  setLiked(!liked);
-  setLikeCount((currentCount) => currentCount + change);
-}
+    const change = liked ? -1 : 1;
+    setLiked(!liked);
+    setLikeCount((currentCount) => currentCount + change);
+  }
 
   function handleCommentSubmit(event) {
     event.preventDefault();
@@ -87,29 +85,6 @@ function Post() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <a href="/" aria-label="Mingle home">
-            <img className="h-9 w-auto" src={mingleLogo} alt="Mingle" />
-          </a>
-
-          <nav className="hidden items-center gap-8 text-sm text-slate-600 sm:flex">
-            <span>Feed</span>
-            <span>Create Post</span>
-            <span>Profile</span>
-          </nav>
-
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="hidden sm:inline">Alex Morgan</span>
-            <img
-              className="h-9 w-9 rounded-full object-cover"
-              src={samplePost.avatar}
-              alt=""
-            />
-          </div>
-        </div>
-      </header>
-
       <main className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
         <button
           className="mb-4 text-sm font-medium text-slate-600 hover:text-indigo-600"
@@ -148,7 +123,7 @@ function Post() {
           <p className="px-4 pb-4 leading-6 sm:px-6">{samplePost.text}</p>
 
           <img
-            className="max-h-[560px] w-full bg-slate-100 object-cover"
+            className="max-h-140 w-full bg-slate-100 object-cover"
             src={samplePost.image}
             alt={samplePost.imageAlt}
           />
@@ -156,7 +131,9 @@ function Post() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 text-sm text-slate-500 sm:px-6">
             <span>📍 {samplePost.location}</span>
             <span>
-              ❤️ {likeCount} · 💬 {samplePost.comments + comments.length - startingComments.length} · ↗ {samplePost.shares}
+              ❤️ {likeCount} · 💬{" "}
+              {samplePost.comments + comments.length - startingComments.length}{" "}
+              · ↗ {samplePost.shares}
             </span>
           </div>
 
@@ -175,9 +152,7 @@ function Post() {
 
             <button
               className="rounded-lg py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
-              onClick={() =>
-                document.getElementById("comment-input")?.focus()
-              }
+              onClick={() => document.getElementById("comment-input")?.focus()}
               type="button"
             >
               💬 Comment
@@ -195,7 +170,10 @@ function Post() {
         <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">
-              Comments <span className="text-sm text-slate-500">({comments.length})</span>
+              Comments{" "}
+              <span className="text-sm text-slate-500">
+                ({comments.length})
+              </span>
             </h2>
             <button
               className="text-sm text-slate-500 hover:text-indigo-600"
@@ -255,7 +233,9 @@ function Post() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-sm font-semibold">{comment.name}</span>
+                    <span className="text-sm font-semibold">
+                      {comment.name}
+                    </span>
                     <span className="text-xs text-slate-500">
                       @{comment.username} · {comment.age}
                     </span>
@@ -272,11 +252,6 @@ function Post() {
             ))}
           </div>
         </section>
-
-        <footer className="flex flex-wrap justify-between gap-2 py-6 text-xs text-slate-500">
-          <span><strong className="text-indigo-600">Mingle</strong> — Simple, calm social interactions.</span>
-          <span>© 2026 Mingle Inc. All rights reserved.</span>
-        </footer>
       </main>
     </div>
   );

@@ -133,6 +133,7 @@ const verifyOtpService = async (email, otp, session) => {
   return {
     successMessage: "OTP verified successfully",
     token,
+    user,
   };
 };
 
