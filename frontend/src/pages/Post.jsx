@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useParams } from "react-router";
-import mingleLogo from "../assets/mingle-logo.svg";
 
 const samplePost = {
   author: "Alex Morgan",
@@ -86,29 +85,6 @@ function Post() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <a href="/" aria-label="Mingle home">
-            <img className="h-9 w-auto" src={mingleLogo} alt="Mingle" />
-          </a>
-
-          <nav className="hidden items-center gap-8 text-sm text-slate-600 sm:flex">
-            <span>Feed</span>
-            <span>Create Post</span>
-            <span>Profile</span>
-          </nav>
-
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="hidden sm:inline">Alex Morgan</span>
-            <img
-              className="h-9 w-9 rounded-full object-cover"
-              src={samplePost.avatar}
-              alt=""
-            />
-          </div>
-        </div>
-      </header>
-
       <main className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
         <button
           className="mb-4 text-sm font-medium text-slate-600 hover:text-indigo-600"
@@ -147,7 +123,7 @@ function Post() {
           <p className="px-4 pb-4 leading-6 sm:px-6">{samplePost.text}</p>
 
           <img
-            className="max-h-[560px] w-full bg-slate-100 object-cover"
+            className="max-h-140 w-full bg-slate-100 object-cover"
             src={samplePost.image}
             alt={samplePost.imageAlt}
           />
@@ -276,14 +252,6 @@ function Post() {
             ))}
           </div>
         </section>
-
-        <footer className="flex flex-wrap justify-between gap-2 py-6 text-xs text-slate-500">
-          <span>
-            <strong className="text-indigo-600">Mingle</strong> — Simple, calm
-            social interactions.
-          </span>
-          <span>© 2026 Mingle Inc. All rights reserved.</span>
-        </footer>
       </main>
     </div>
   );
