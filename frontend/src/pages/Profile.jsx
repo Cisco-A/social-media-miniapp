@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 const startingProfile = {
   name: "Alex Morgan",
   username: "alexmorgan",
   bio: "Product designer and photographer based in San Francisco. Building simple tools for curious minds ✨",
+  avatarUrl: "",
   location: "San Francisco, CA",
   website: "alexmorgan.design",
 };
@@ -36,8 +39,27 @@ const posts = [
 ];
 
 function Profile() {
-  const [profile, setProfile] = useState(startingProfile);
+  const { user } = useAuth();
+
+  const [profile, setProfile] = useState(() => ({
+    ...startingProfile,
+    name: user?.displayName || user?.username || startingProfile.name,
+    username: user?.username || startingProfile.username,
+    bio: user?.bio ?? "",
+    avatarUrl: user?.avatarUrl ?? "",
+  }));
+
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [savedMessage, setSavedMessage] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -48,9 +70,48 @@ function Profile() {
     setSavedMessage("");
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    setSavedMessage("Your changes are saved on this page.");
+    setIsSaving(true);
+    setErrorMessage("");
+    setSavedMessage("");
+
+    try {
+      const formData = new FormData();
+      formData.append("displayName", profile.name);
+      formData.append("username", profile.username);
+      formData.append("bio", profile.bio);
+
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+
+      const response = await api.patch("/users/update-profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const updatedUser = response.data.data;
+
+      setProfile((current) => ({
+        ...current,
+        name: updatedUser.displayName ?? current.name,
+        username: updatedUser.username ?? current.username,
+        bio: updatedUser.bio ?? current.bio,
+        avatarUrl: updatedUser.avatarUrl ?? current.avatarUrl,
+      }));
+
+      setAvatarFile(null);
+      setAvatarPreview("");
+      setSavedMessage("Profile updated successfully.");
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message ?? "Unable to update your profile.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -64,7 +125,16 @@ function Profile() {
           </div>
 
           <div className="profile-summary">
-            <div className="avatar">A</div>
+            <div className="avatar">
+              {avatarPreview || profile.avatarUrl ? (
+                <img
+                  src={avatarPreview || profile.avatarUrl}
+                  alt={`${profile.name}'s profile`}
+                />
+              ) : (
+                profile.name.charAt(0).toUpperCase()
+              )}
+            </div>
 
             <div className="summary-details">
               <h1>
@@ -106,6 +176,18 @@ function Profile() {
               </div>
               <span className="edit-label">Edit</span>
             </div>
+            <label>
+              Profile photo
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setAvatarFile(file);
+                  setAvatarPreview(file ? URL.createObjectURL(file) : "");
+                }}
+              />
+            </label>
 
             <label>
               Display Name
@@ -169,20 +251,38 @@ function Profile() {
                 className="button button-light"
                 type="button"
                 onClick={() => {
-                  setProfile(startingProfile);
+                  setProfile({
+                    ...startingProfile,
+                    name:
+                      user?.displayName ||
+                      user?.username ||
+                      startingProfile.name,
+                    username: user?.username || startingProfile.username,
+                    bio: user?.bio ?? "",
+                    avatarUrl: user?.avatarUrl ?? "",
+                  });
+                  setAvatarFile(null);
+                  setAvatarPreview("");
                   setSavedMessage("");
+                  setErrorMessage("");
                 }}
               >
                 Cancel
               </button>
-              <button className="button button-primary" type="submit">
-                ✓ Save Changes
+              <button
+                className="button button-primary"
+                type="submit"
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "✓ Save Changes"}
               </button>
             </div>
 
-            {savedMessage && (
-              <p className="saved-message" role="status">
-                {savedMessage}
+            {savedMessage && <p role="status">{savedMessage}</p>}
+
+            {errorMessage && (
+              <p className="error-message" role="alert">
+                {errorMessage}
               </p>
             )}
           </form>

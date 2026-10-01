@@ -1,4 +1,28 @@
 import User from "./users.schema.js";
+import cloudinary from "../../config/cloudinary.js"; 
+
+export const uploadAvatar = (fileBuffer) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "mingle/avatars",
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        if (!result?.secure_url) {
+          return reject(new Error("Cloudinary did not return an image URL"));
+        }
+
+        resolve(result.secure_url);
+      },
+    );
+
+    stream.end(fileBuffer);
+  });
 
 export const getUsers = async ({ search = "", page = 1, limit = 10 }) => {
   page = Number(page);
