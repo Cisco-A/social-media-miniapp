@@ -1,14 +1,14 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import dns from "dns";
+
 
 import connectDB from "./config/db.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import commentsRoutes from "./modules/comments/comments.routes.js";
 
 dotenv.config();
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 
 
 const app = express();
