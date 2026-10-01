@@ -52,11 +52,8 @@ const verifyOtp = async (req, res) => {
 
     await session.withTransaction(async () => {
       // Call the verifyOtpService function to verify the OTP
-      const { code, error, successMessage, token } = await verifyOtpService(
-        email,
-        otp,
-        session,
-      );
+      const { code, error, successMessage, token, user } =
+        await verifyOtpService(email, otp, session);
 
       if (error) {
         return res.status(code).json({
@@ -70,6 +67,7 @@ const verifyOtp = async (req, res) => {
           status: true,
           message: successMessage,
           token,
+          user,
         });
       }
     });
@@ -145,7 +143,7 @@ const resetPassword = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { code, error, token } = await loginUser(req.body);
+    const { code, error, token, user } = await loginUser(req.body);
 
     if (error) {
       return res.status(code).json({
@@ -157,9 +155,8 @@ const login = async (req, res) => {
     res.status(200).json({
       status: true,
       message: "You logged in successfully",
-      data: {
-        token,
-      },
+      token,
+      user,
     });
   } catch (error) {
     console.log(error);

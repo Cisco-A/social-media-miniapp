@@ -1,5 +1,50 @@
-import User from "./users.schema";
+import User from "./users.schema.js";
 
+export const getUsers = async ({ search = "", page = 1, limit = 10 }) => {
+  page = Number(page);
+  limit = Number(limit);
+
+  const skip = (page - 1) * limit;
+
+  const filter = {};
+
+  if (search.trim()) {
+    filter.$or = [
+      {
+        username: {
+          $regex: search.trim(),
+          $options: "i",
+        },
+      },
+      {
+        displayName: {
+          $regex: search.trim(),
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .select("-passwordHash")
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }),
+
+    User.countDocuments(filter),
+  ]);
+
+  return {
+    users,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
 
 export const getUserById = async (userId) => {
   const user = await User.findById(userId).select("-passwordHash");
@@ -11,7 +56,6 @@ export const getUserById = async (userId) => {
   return user;
 };
 
-
 export const updateProfile = async (userId, data) => {
   const user = await User.findById(userId);
 
@@ -22,7 +66,7 @@ export const updateProfile = async (userId, data) => {
   if (data.username) {
     const usernameExists = await User.exists({
       username: data.username,
-      _id: {$ne: userId}
+      _id: { $ne: userId },
     });
 
     if (usernameExists) {
@@ -35,6 +79,7 @@ export const updateProfile = async (userId, data) => {
   user.bio = data.bio ?? user.bio;
   user.avatarUrl = data.avatarUrl ?? user.avatarUrl;
 
-  return user.save();
+  await user.save();
 
+  return User.findById(userId).select("-passwordHash");
 };
