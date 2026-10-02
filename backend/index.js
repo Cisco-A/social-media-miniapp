@@ -4,6 +4,7 @@ import cors from "cors";
 
 import connectDB from "./config/db.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import likeRoutes from "./modules/likes/likes.routes.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/likes", likeRoutes);
 
 const PORT = process.env.PORT || 3000;
 
