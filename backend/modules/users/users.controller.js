@@ -39,7 +39,16 @@ export const getUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const user = await userService.updateProfile(req.user.userId, req.body);
+    const profileData = { ...req.body };
+
+    if (req.file) {
+      profileData.avatarUrl = await userService.uploadAvatar(req.file.buffer);
+    }
+
+    const user = await userService.updateProfile(
+      req.user.userId,
+      profileData,
+    );
 
     return res.status(200).json({
       status: true,
@@ -47,6 +56,7 @@ export const updateUser = async (req, res) => {
       data: user,
     });
   } catch (error) {
+    console.error("Profile update failed:", error);
     return res.status(500).json({
       status: false,
       message: error.message,
