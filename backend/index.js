@@ -10,6 +10,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import commentsRoutes from "./modules/comments/comments.routes.js";
 import userRoutes from "./modules/users/users.routes.js";
 import postRoutes from "./modules/posts/posts.routes.js"
+import LikesRoutes from "./modules/likes/likes.routes.js";
 
 dotenv.config();
 
@@ -29,7 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/comments", commentsRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
-
+app.use("/api/likes", LikesRoutes);
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
