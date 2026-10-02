@@ -7,8 +7,6 @@ const startingProfile = {
   username: "alexmorgan",
   bio: "Product designer and photographer based in San Francisco. Building simple tools for curious minds ✨",
   avatarUrl: "",
-  location: "San Francisco, CA",
-  website: "alexmorgan.design",
 };
 
 const posts = [
@@ -144,8 +142,6 @@ function Profile() {
               <p className="username">@{profile.username}</p>
               <p className="summary-bio">{profile.bio}</p>
               <p className="summary-meta">
-                <span>⌖ {profile.location}</span>
-                <span>↗ {profile.website}</span>
                 <span>▣ Joined March 2022</span>
               </p>
             </div>
@@ -216,26 +212,6 @@ function Profile() {
                 {profile.bio.length} / 160
               </span>
             </label>
-
-            <div className="two-columns">
-              <label>
-                Location
-                <input
-                  name="location"
-                  value={profile.location}
-                  onChange={handleChange}
-                />
-              </label>
-
-              <label>
-                Website
-                <input
-                  name="website"
-                  value={profile.website}
-                  onChange={handleChange}
-                />
-              </label>
-            </div>
 
             <div className="security-note">
               <span className="security-icon">✓</span>
