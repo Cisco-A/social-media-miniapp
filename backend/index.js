@@ -10,6 +10,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import commentsRoutes from "./modules/comments/comments.routes.js";
 import userRoutes from "./modules/users/users.routes.js";
 import postRoutes from "./modules/posts/posts.routes.js"
+import LikesRoutes from "./modules/likes/likes.routes.js";
 
 dotenv.config();
 
