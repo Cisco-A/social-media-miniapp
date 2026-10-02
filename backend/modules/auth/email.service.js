@@ -78,6 +78,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -85,6 +87,8 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD,
   },
 });
+
+// await transporter.verify();
 
 export const sendEmailVerificationOtp = async (email, otp) => {
   try {
@@ -139,6 +143,37 @@ export const sendResetOtpEmail = async (email, otp) => {
           If you did not request a password reset,
           you can safely ignore this email.
         </p>
+        <p>&copy; ${new Date().getFullYear()} · Mini Social Media app</p>
+        <p>Made with ❤️ by Group 20</p>
+      </div>
+    `,
+    });
+    console.log("Email sent successfully", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    throw error;
+  }
+};
+export const sendWelcomeEmail = async (email, name) => {
+  try {
+    const info = await transporter.sendMail({
+      from: "admin.mingle-social@app.com",
+      to: [email],
+      subject: "Welcome Message from Mingle social app 👥",
+      html: `
+      <div>
+        <h1>Hi ${name} 👋</h1>
+        <img 
+          src="${FRONTEND_URL}/public/mingle-logo.svg" 
+          alt="Mingle social app logo" 
+          width="300" 
+          height="200" 
+          border="0" 
+          style="display: block; width: 100%; max-width: 300px; height: auto;"
+        /> 
+        <p>Welcome to Mingle social app</p>
+        <p>Feel free to share ideas and how you feel on our platform, react on other people's post</p>
         <p>&copy; ${new Date().getFullYear()} · Mini Social Media app</p>
         <p>Made with ❤️ by Group 20</p>
       </div>

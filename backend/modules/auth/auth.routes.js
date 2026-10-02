@@ -7,8 +7,7 @@ import {
   verifyOtp,
   resendOtp,
   resetPassword,
-  // forgotPassword,
-  // resetPassword
+  me,
 } from "./auth.controller.js";
 
 import registerValidation from "./auth.validation/register.validation.js";
@@ -18,6 +17,7 @@ import otpValidation from "./auth.validation/otp.validation.js";
 import validation from "../../middlewares/validation.js";
 import resendValidation from "./auth.validation/resend.validation.js";
 import resetPasswordValidation from "./auth.validation/resetPassword.validation.js";
+import authenticate from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
@@ -35,14 +35,6 @@ router.post(
   resetPassword,
 );
 
-// router.post(
-//   '/forgot-password',
-//   forgotPassword
-// );
-
-// router.post(
-//   '/reset-password/:token',
-//   resetPassword
-// );
+router.get("/me", authenticate, me);
 
 export default router;

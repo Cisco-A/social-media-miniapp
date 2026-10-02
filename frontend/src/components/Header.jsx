@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router";
 import { useAuth } from "../context/AuthContext";
+import { LogOutIcon } from "lucide-react";
 
 const frontendUrl = import.meta.env.VITE_FRONTEND_URL;
 
@@ -23,7 +24,7 @@ const navUrls = [
 
 const Header = () => {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const currentPathname = location.pathname;
   return (
     <header className="topbar">
@@ -50,7 +51,14 @@ const Header = () => {
       <div className="topbar-user">
         {user?.displayName}{" "}
         <span className="small-avatar">
-          {user?.displayName.charAt(0).toUpperCase()}
+          {user?.displayName?.charAt(0).toUpperCase() || "User"}
+        </span>
+        <span
+          onClick={logout}
+          title="Log out"
+          className="p-2 hover:bg-red-200 rounded-full duration-500 transition-all"
+        >
+          <LogOutIcon size={18} className="text-red-500" />
         </span>
       </div>
     </header>
