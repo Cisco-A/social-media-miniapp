@@ -1,6 +1,7 @@
 /* eslint-disable no-useless-catch */
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../api/axios";
+import { toast } from "react-hot-toast";
 
 const AuthContext = createContext(null);
 
@@ -9,13 +10,21 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [loading, setLoading] = useState(true);
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+    toast.success("Logged out successfully");
+  };
+
   useEffect(() => {
     const verifyUserSession = async () => {
       if (token) {
         try {
           // Actual endpoint to fetch current user profile
-          // const response = await api.get("/user");
-          // setUser(response.data.user);
+          const response = await api.get("/auth/me");
+          const user = response.data?.user;
+          setUser(user);
         } catch (error) {
           console.error("Session verification failed", error);
           logout();
@@ -87,12 +96,6 @@ export const AuthProvider = ({ children }) => {
       newPassword,
     });
     return response.data;
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-    setUser(null);
   };
 
   const value = {

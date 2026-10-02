@@ -8,6 +8,7 @@ import User from "../users/users.schema.js";
 import {
   sendEmailVerificationOtp,
   sendResetOtpEmail,
+  sendWelcomeEmail,
 } from "./email.service.js";
 import { usernameGenerator } from "../../config/usernameGenerator.js";
 // import { sendResetOtpEmail } from './email.service.js';
@@ -279,12 +280,18 @@ const loginUser = async ({ email, password }) => {
   };
 };
 
+const meService = async (userId) => {
+  const user = await User.findById(userId);
+  return {
+    user,
+  };
+};
+
 export {
   registerUser,
   loginUser,
   verifyOtpService,
   resendOtpCode,
   resetPasswordService,
-  // forgotPasswordService,
-  // resetPasswordService
+  meService,
 };

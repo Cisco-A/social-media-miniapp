@@ -5,6 +5,7 @@ import {
   verifyOtpService,
   resendOtpCode,
   resetPasswordService,
+  meService,
 } from "./auth.service.js";
 
 // import { forgotPasswordService } from './auth.service.js';
@@ -169,44 +170,27 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   res.status(200).json({
-    status: "success",
+    status: true,
     message: "You logged out successfully",
   });
 };
+const me = async (req, res) => {
+  const { userId } = req.user;
 
-// const forgotPassword = async (req, res) => {
-//   try {
-//     await forgotPasswordService(req.body.email);
+  try {
+    const { user } = await meService(userId);
+    return res.status(200).json({
+      status: true,
+      user,
+    });
+  } catch (error) {
+    console.log("Error gettung current user", error);
+    return res.status(500).json({
+      status: false,
+      message:
+        "Unable to fetch current logged in user at the moment, please try again later",
+    });
+  }
+};
 
-//     res.status(200).json({
-//       status: 'success',
-//       message: 'Password reset email sent'
-//     });
-//   } catch (error) {
-//     res.status(400).json({
-//       status: 'error',
-//       message: error.message
-//     });
-//   }
-// };
-
-//  const resetPassword = async (req, res) => {
-//   try {
-//     const { token } = req.params;
-//     const { password } = req.body;
-
-//     await resetPasswordService(token, password);
-
-//     res.status(200).json({
-//       status: 'success',
-//       message: 'Password reset successfully'
-//     });
-//   } catch (error) {
-//     res.status(400).json({
-//       status: 'error',
-//       message: error.message
-//     });
-//   }
-// };
-
-export { register, login, logout, verifyOtp, resendOtp, resetPassword };
+export { register, login, logout, verifyOtp, resendOtp, resetPassword, me };
