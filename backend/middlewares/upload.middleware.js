@@ -12,12 +12,17 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5 MB
   },
   fileFilter: (_req, file, callback) => {
-    if (!allowedImageTypes.has(file.mimetype)) {
-      return callback(new Error("Avatar must be a JPG, PNG, or WEBP image"));
-    }
+  const allowedExtension = /\.(jpe?g|png|webp)$/i.test(file.originalname);
+  const allowedMimeType = allowedImageTypes.has(file.mimetype);
+  const genericMimeWithImageExtension =
+    file.mimetype === "application/octet-stream" && allowedExtension;
 
-    callback(null, true);
-  },
+  if (!allowedMimeType && !genericMimeWithImageExtension) {
+    return callback(new Error("Avatar must be a JPG, PNG, or WEBP image"));
+  }
+
+  callback(null, true);
+},
 });
 
 export default upload;
