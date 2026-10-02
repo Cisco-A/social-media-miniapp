@@ -30,7 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/comments", commentsRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
-
+app.use("/api/likes", LikesRoutes);
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {

@@ -85,5 +85,5 @@ const unlikePost = async (req, res) => {
 export {
   createLike,
   getLikes,
-   unlikePost
+  unlikePost
 };

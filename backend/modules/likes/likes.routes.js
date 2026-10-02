@@ -1,7 +1,7 @@
 import express from 'express';
 
 import {
-   createLike,
+  createLike,
   getLikes,
   unlikePost
 } from './likes.controller.js';
