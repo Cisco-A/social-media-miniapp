@@ -46,6 +46,10 @@ const CreatePostPage = () => {
     }
   };
 
+  const goBack = () => {
+    navigate("/posts");
+  };
+
   const removeImage = (indexToRemove) => {
     setImages(images.filter((_, index) => index !== indexToRemove));
   };
@@ -58,7 +62,11 @@ const CreatePostPage = () => {
         {/* Top Header Bar / Navigation */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">
-            <button className="p-1.5 rounded-lg hover:bg-slate-200/60 text-slate-600 transition-colors">
+            <button
+              onClick={goBack}
+              type="button"
+              className="p-1.5 rounded-lg hover:bg-slate-200/60 text-slate-600 transition-colors"
+            >
               <ArrowLeft size={18} />
             </button>
             {/* <span className="text-slate-500 font-medium">Feed</span>
@@ -88,11 +96,17 @@ const CreatePostPage = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <img
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                      alt={`${user.displayName} display image`}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    {user.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={`${user.displayName} display image`}
+                        className="w-10 h-10 rounded-full object-cover border border-slate-300"
+                      />
+                    ) : (
+                      <span className="small-avatar">
+                        {user?.displayName?.charAt(0).toUpperCase() || ""}
+                      </span>
+                    )}
                     <span className="absolute bottom-0 right-0 w-3 h-3 bg-indigo-600 border-2 border-white rounded-full"></span>
                   </div>
                   <div>
@@ -102,8 +116,8 @@ const CreatePostPage = () => {
                     <div className="flex items-center gap-1 mt-0.5">
                       <button className="inline-flex items-center gap-1 text-[11px] text-slate-500 bg-slate-100 hover:bg-slate-200/70 px-2 py-0.5 rounded-md font-medium transition-colors">
                         <Globe size={11} />
-                        <span>{visibility}</span>
-                        <span className="text-[9px]">▼</span>
+                        <span className="text-sm">{visibility}</span>
+                        {/* <span className="text-[9px]">▼</span> */}
                       </button>
                     </div>
                   </div>
