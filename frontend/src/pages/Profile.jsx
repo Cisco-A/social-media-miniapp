@@ -11,35 +11,11 @@ const startingProfile = {
   avatarUrl: "",
 };
 
-const posts = [
-  {
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700",
-    alt: "Modern building",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=700",
-    alt: "Coffee and notebook",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=700",
-    alt: "Forest path",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=700",
-    alt: "Colorful technology",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=700",
-    alt: "City at sunset",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?w=700",
-    alt: "Handmade ceramics",
-  },
-];
+const POSTS_PER_PAGE = 12;
 
 function Profile() {
   const { user } = useAuth();
+  const userId = user?._id ?? user?.id;
 
   const [profile, setProfile] = useState(() => ({
     ...startingProfile,
@@ -55,12 +31,92 @@ function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [savedMessage, setSavedMessage] = useState("");
+  const [posts, setPosts] = useState([]);
+  const [postCount, setPostCount] = useState(0);
+  const [postsPage, setPostsPage] = useState(1);
+  const [hasMorePosts, setHasMorePosts] = useState(false);
+  const [isPostsLoading, setIsPostsLoading] = useState(true);
+  const [isLoadingMorePosts, setIsLoadingMorePosts] = useState(false);
+  const [postsError, setPostsError] = useState("");
 
   useEffect(() => {
     return () => {
       if (avatarPreview) URL.revokeObjectURL(avatarPreview);
     };
   }, [avatarPreview]);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadMyPosts = async () => {
+      if (!userId) {
+        setPosts([]);
+        setPostCount(0);
+        setIsPostsLoading(false);
+        return;
+      }
+
+      setIsPostsLoading(true);
+      setPostsError("");
+
+      try {
+        const response = await api.get("/posts/me", {
+          params: { page: 1, limit: POSTS_PER_PAGE },
+        });
+        const data = response.data?.data;
+
+        if (isCurrent) {
+          setPosts(data?.posts ?? []);
+          setPostCount(data?.pagination?.totalPosts ?? 0);
+          setPostsPage(data?.pagination?.page ?? 1);
+          setHasMorePosts(
+            (data?.pagination?.page ?? 1) < (data?.pagination?.totalPages ?? 1),
+          );
+        }
+      } catch (error) {
+        if (isCurrent) {
+          setPostsError(
+            error.response?.data?.message ?? "Unable to load your posts.",
+          );
+        }
+      } finally {
+        if (isCurrent) setIsPostsLoading(false);
+      }
+    };
+
+    loadMyPosts();
+    return () => {
+      isCurrent = false;
+    };
+  }, [userId]);
+
+  async function handleLoadMorePosts() {
+    if (isLoadingMorePosts || !hasMorePosts) return;
+
+    const nextPage = postsPage + 1;
+    setIsLoadingMorePosts(true);
+    setPostsError("");
+
+    try {
+      const response = await api.get("/posts/me", {
+        params: { page: nextPage, limit: POSTS_PER_PAGE },
+      });
+      const data = response.data?.data;
+      setPosts((currentPosts) => [...currentPosts, ...(data?.posts ?? [])]);
+      setPostCount(data?.pagination?.totalPosts ?? postCount);
+      setPostsPage(data?.pagination?.page ?? nextPage);
+      setHasMorePosts(
+        (data?.pagination?.page ?? nextPage) <
+          (data?.pagination?.totalPages ?? nextPage),
+      );
+    } catch (error) {
+      setPostsError(
+        error.response?.data?.message ?? "Unable to load more posts.",
+      );
+    } finally {
+      setIsLoadingMorePosts(false);
+    }
+  }
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -155,7 +211,7 @@ function Profile() {
 
             <div className="profile-stats">
               <div>
-                <strong>0</strong>
+                <strong>{postCount}</strong>
                 <span>Posts</span>
               </div>
               <div>
@@ -272,22 +328,51 @@ function Profile() {
           <section className="posts-section">
             <div className="posts-toolbar">
               <button className="tab-active" type="button">
-                ▦ Posts <span>18</span>
+                ▦ Posts <span>{postCount}</span>
               </button>
               <button type="button">♡ Liked Posts</button>
               <button type="button">♧ Saved</button>
               <span className="sort-label">Sorted by Latest</span>
             </div>
 
-            <div className="post-grid">
-              {posts.map((post) => (
-                <img key={post.alt} src={post.image} alt={post.alt} />
-              ))}
-            </div>
+            {isPostsLoading ? (
+              <p className="posts-feedback" role="status">Loading your posts…</p>
+            ) : postsError ? (
+              <p className="posts-feedback posts-feedback-error" role="alert">{postsError}</p>
+            ) : posts.length === 0 ? (
+              <p className="posts-feedback">You haven’t shared any posts yet.</p>
+            ) : (
+              <div className="post-grid">
+                {posts.map((post) => (
+                  <article
+                    aria-label={`Post: ${post.content}`}
+                    className="profile-post"
+                    key={post._id}
+                  >
+                    {post.images?.[0] ? (
+                      <img src={post.images[0]} alt={post.content || "Your post"} />
+                    ) : (
+                      <span className="profile-post-text">{post.content}</span>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
 
-            <button className="archive-button" type="button">
-              View More Archives⌄
-            </button>
+            {postsError && !isPostsLoading && posts.length > 0 && (
+              <p className="posts-feedback posts-feedback-error" role="alert">{postsError}</p>
+            )}
+
+            {hasMorePosts && (
+              <button
+                className="archive-button"
+                disabled={isLoadingMorePosts}
+                onClick={handleLoadMorePosts}
+                type="button"
+              >
+                {isLoadingMorePosts ? "Loading…" : "View More Posts⌄"}
+              </button>
+            )}
           </section>
         </section>
       </main>
