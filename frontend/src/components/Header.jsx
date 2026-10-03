@@ -50,9 +50,17 @@ const Header = () => {
 
       <div className="topbar-user">
         {user?.displayName}{" "}
-        <span className="small-avatar">
-          {user?.displayName?.charAt(0).toUpperCase() || "User"}
-        </span>
+        {user.avatarUrl ? (
+          <img
+            className="rounded-full h-10 w-10 border border-slate-300 shadow-sm shadow-slate-200"
+            src={user.avatarUrl}
+            alt={`${user.displayName} avatar image`}
+          />
+        ) : (
+          <span className="small-avatar">
+            {user?.displayName?.charAt(0).toUpperCase() || ""}
+          </span>
+        )}
         <span
           onClick={logout}
           title="Log out"

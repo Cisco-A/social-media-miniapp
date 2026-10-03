@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
+import dayjs from "dayjs";
 
 const startingProfile = {
   name: "Alex Morgan",
@@ -45,6 +47,7 @@ function Profile() {
     username: user?.username || startingProfile.username,
     bio: user?.bio ?? "",
     avatarUrl: user?.avatarUrl ?? "",
+    joinedAt: dayjs(user.createdAt).format("MMMM YYYY") ?? "",
   }));
 
   const [avatarFile, setAvatarFile] = useState(null);
@@ -103,7 +106,9 @@ function Profile() {
       setAvatarFile(null);
       setAvatarPreview("");
       setSavedMessage("Profile updated successfully.");
+      toast.success("Profile updated successfully.");
     } catch (error) {
+      toast.error(error.response?.data?.message);
       setErrorMessage(
         error.response?.data?.message ?? "Unable to update your profile.",
       );
@@ -137,26 +142,28 @@ function Profile() {
             <div className="summary-details">
               <h1>
                 {profile.name} <span className="verified">✓</span>
-                <span className="creator-badge">Pro Creator</span>
+                {/* <span className="creator-badge">Pro Creator</span> */}
               </h1>
               <p className="username">@{profile.username}</p>
               <p className="summary-bio">{profile.bio}</p>
               <p className="summary-meta">
-                <span>▣ Joined March 2022</span>
+                <span>
+                  {profile.joinedAt && `▣ Joined ${profile.joinedAt}`}
+                </span>
               </p>
             </div>
 
             <div className="profile-stats">
               <div>
-                <strong>18</strong>
+                <strong>0</strong>
                 <span>Posts</span>
               </div>
               <div>
-                <strong>1,420</strong>
+                <strong>0</strong>
                 <span>Followers</span>
               </div>
               <div>
-                <strong>389</strong>
+                <strong>0</strong>
                 <span>Following</span>
               </div>
             </div>
@@ -184,7 +191,6 @@ function Profile() {
                 }}
               />
             </label>
-
             <label>
               Display Name
               <input name="name" value={profile.name} onChange={handleChange} />
@@ -213,14 +219,14 @@ function Profile() {
               </span>
             </label>
 
-            <div className="security-note">
+            {/* <div className="security-note">
               <span className="security-icon">✓</span>
               <span>
                 <strong>Two-Factor Authentication</strong>
                 <br />
                 Enabled via Authenticator App
               </span>
-            </div>
+            </div> */}
 
             <div className="form-actions">
               <button
