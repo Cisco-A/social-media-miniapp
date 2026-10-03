@@ -90,6 +90,34 @@ const getPostsService = async (query = {}) => {
 	};
 };
 
+const getMyPostsService = async (authorId, query = {}) => {
+	const page = parsePositiveInteger(query.page, 1);
+	const limit = parsePositiveInteger(query.limit, 12, 100);
+	const skip = (page - 1) * limit;
+	const filter = { author: authorId };
+
+	const [posts, totalPosts] = await Promise.all([
+		Post.find(filter)
+			.sort({ createdAt: -1 })
+			.skip(skip)
+			.limit(limit)
+			.populate("author", authorFields),
+		Post.countDocuments(filter),
+	]);
+
+	return {
+		code: 200,
+		successMessage: "Your posts retrieved successfully",
+		posts,
+		pagination: {
+			page,
+			limit,
+			totalPosts,
+			totalPages: Math.ceil(totalPosts / limit),
+		},
+	};
+};
+
 const getPostByIdService = async (postId) => {
 	if (!mongoose.isValidObjectId(postId)) {
 		return invalidIdResult();
@@ -177,6 +205,7 @@ const deletePostService = async (authorId, postId) => {
 export {
 	createPostService,
 	getPostsService,
+	getMyPostsService,
 	getPostByIdService,
 	updatePostService,
 	deletePostService,
