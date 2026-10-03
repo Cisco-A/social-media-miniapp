@@ -1,236 +1,336 @@
-import { useState } from "react";
-import { useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
+import { ArrowLeft, Heart, MessageCircle } from "lucide-react";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
-const samplePost = {
-  author: "Alex Morgan",
-  username: "alexmorgan",
-  avatar:
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&crop=faces",
-  postedAt: "1 day ago",
-  text: "Exploring the quiet coastlines this afternoon. The ocean breeze clears the mind like nothing else! 🌊🌤️",
-  image: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1400",
-  imageAlt: "Ocean waves along a quiet coastline",
-  location: "Big Sur, California",
-  likes: 328,
-  comments: 24,
-  shares: 12,
-};
+const getErrorMessage = (error, fallback) =>
+  error.response?.data?.message ?? fallback;
 
-const startingComments = [
-  {
-    id: 1,
-    name: "Elena Rostova",
-    username: "erostova",
-    avatar:
-      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&h=80&fit=crop&crop=faces",
-    age: "18h ago",
-    text: "The clarity in that wave crest is magnificent, Alex! What lens setup did you end up bringing out to Big Sur?",
-  },
-  {
-    id: 2,
-    name: "Marcus Chen",
-    username: "mchen",
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces",
-    age: "14h ago",
-    text: "Salt air does wonders for cognitive fatigue. Looks like you caught the exact pocket before the marine fog rolled in.",
-  },
-  {
-    id: 3,
-    name: "Sophia Vance",
-    username: "svance",
-    avatar:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=faces",
-    age: "9h ago",
-    text: "This looks like a peaceful dream. Truly needed to see this color palette today.",
-  },
-];
+const getDisplayName = (user) =>
+  user?.displayName || user?.username || "User";
 
 function Post() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [comments, setComments] = useState(startingComments);
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
+  const [isCommentLoading, setIsCommentLoading] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [commentsError, setCommentsError] = useState("");
+  const [actionError, setActionError] = useState("");
 
-  function handleCommentSubmit(event) {
-    event.preventDefault();
+  useEffect(() => {
+    let isCurrent = true;
 
-    const trimmedComment = commentText.trim();
-    if (!trimmedComment) return;
+    const loadPost = async () => {
+      setIsLoading(true);
+      setErrorMessage("");
+      setCommentsError("");
+      setActionError("");
+      setPost(null);
+      setComments([]);
+      setIsLiked(false);
 
-    const newComment = {
-      id: Date.now(),
-      name: "You",
-      username: "you",
-      avatar: "",
-      age: "Just now",
-      text: trimmedComment,
+      try {
+        const response = await api.get(`/posts/${id}`);
+        const fetchedPost = response.data?.data?.post;
+
+        if (!fetchedPost) {
+          throw new Error("The post response did not include a post.");
+        }
+
+        if (isCurrent) setPost(fetchedPost);
+
+        const [likesResult, commentsResult] = await Promise.allSettled([
+          api.get(`/likes/${id}`),
+          api.get(`/comments/posts/${id}`),
+        ]);
+
+        if (!isCurrent) return;
+
+        if (likesResult.status === "fulfilled") {
+          const likes = likesResult.value.data?.likes ?? [];
+          const currentUserId = user?._id ?? user?.id;
+          setIsLiked(
+            Boolean(
+              currentUserId &&
+                likes.some((like) => {
+                  const likedUserId = like.userId?._id ?? like.userId;
+                  return String(likedUserId) === String(currentUserId);
+                }),
+            ),
+          );
+          setPost((currentPost) =>
+            currentPost
+              ? { ...currentPost, likesCount: fetchedPost.likesCount ?? likes.length }
+              : currentPost,
+          );
+        } else {
+          setActionError(
+            getErrorMessage(likesResult.reason, "Unable to load like status."),
+          );
+        }
+
+        if (commentsResult.status === "fulfilled") {
+          setComments(commentsResult.value.data?.data ?? []);
+        } else {
+          setCommentsError(
+            getErrorMessage(commentsResult.reason, "Unable to load comments."),
+          );
+        }
+      } catch (error) {
+        if (isCurrent) {
+          setErrorMessage(getErrorMessage(error, "Unable to load this post."));
+        }
+      } finally {
+        if (isCurrent) setIsLoading(false);
+      }
     };
 
-    setComments((currentComments) => [newComment, ...currentComments]);
-    setCommentText("");
+    loadPost();
+    return () => {
+      isCurrent = false;
+    };
+  }, [id, user?._id, user?.id]);
+
+  async function handleLikeClick() {
+    if (!post || isLikeLoading) return;
+
+    setIsLikeLoading(true);
+    setActionError("");
+
+    try {
+      if (isLiked) {
+        await api.delete(`/likes/${id}`);
+        setIsLiked(false);
+        setPost((currentPost) => ({
+          ...currentPost,
+          likesCount: Math.max(0, (currentPost.likesCount ?? 0) - 1),
+        }));
+      } else {
+        await api.post(`/likes/${id}`);
+        setIsLiked(true);
+        setPost((currentPost) => ({
+          ...currentPost,
+          likesCount: (currentPost.likesCount ?? 0) + 1,
+        }));
+      }
+    } catch (error) {
+      setActionError(getErrorMessage(error, "Unable to update your like."));
+    } finally {
+      setIsLikeLoading(false);
+    }
   }
 
+  async function handleCommentSubmit(event) {
+    event.preventDefault();
+    const content = commentText.trim();
+    if (!content || isCommentLoading) return;
+
+    setIsCommentLoading(true);
+    setCommentsError("");
+
+    try {
+      const response = await api.post(`/comments/posts/${id}`, { content });
+      const comment = response.data?.data;
+      if (comment) setComments((currentComments) => [comment, ...currentComments]);
+      setCommentText("");
+    } catch (error) {
+      setCommentsError(getErrorMessage(error, "Unable to add your comment."));
+    } finally {
+      setIsCommentLoading(false);
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <main className="min-h-[70vh] bg-slate-50 px-4 py-10 text-center text-slate-600" role="status">
+        Loading post…
+      </main>
+    );
+  }
+
+  if (errorMessage || !post) {
+    return (
+      <main className="min-h-[70vh] bg-slate-50 px-4 py-10 text-slate-800">
+        <div className="mx-auto max-w-3xl rounded-xl border border-red-200 bg-white p-6 shadow-sm">
+          <p className="text-red-700" role="alert">
+            {errorMessage || "Post not found."}
+          </p>
+          <Link className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:underline" to="/posts">
+            ← Back to feed
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const author = post.author ?? {};
+  const authorName = getDisplayName(author);
+  const currentUserName = getDisplayName(user);
+
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800">
-      <main className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
+    <main className="min-h-[70vh] bg-slate-50 px-4 py-6 text-slate-800 sm:py-8">
+      <div className="mx-auto max-w-3xl">
         <button
-          className="mb-4 text-sm font-medium text-slate-600 hover:text-indigo-600"
+          className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-indigo-600"
+          onClick={() => navigate("/posts")}
           type="button"
         >
-          ← Back to Feed
+          <ArrowLeft aria-hidden="true" size={16} /> Back to Feed
         </button>
 
-        <article
-          aria-label={`Post ${id}`}
-          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-            <div className="flex items-center gap-3">
+        <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center gap-3 px-4 py-4 sm:px-6">
+            {author.avatarUrl ? (
               <img
-                className="h-11 w-11 rounded-full object-cover"
-                src={samplePost.avatar}
                 alt=""
+                className="h-11 w-11 rounded-full object-cover"
+                src={author.avatarUrl}
               />
-              <div>
-                <p className="font-semibold">
-                  {samplePost.author}
-                  <span className="ml-2 text-xs font-normal text-indigo-600">
-                    ✓ You
-                  </span>
-                </p>
-                <p className="text-xs text-slate-500">
-                  @{samplePost.username} · {samplePost.postedAt} · 🌐
-                </p>
-              </div>
+            ) : (
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-indigo-100 font-semibold text-indigo-700">
+                {authorName.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{authorName}</p>
+              <p className="text-xs text-slate-500">
+                {author.username ? `@${author.username} · ` : ""}
+                {post.createdAt ? new Date(post.createdAt).toLocaleString() : ""}
+              </p>
             </div>
-
-            <span className="text-xs text-slate-500">Author View</span>
           </div>
 
-          <p className="px-4 pb-4 leading-6 sm:px-6">{samplePost.text}</p>
+          <p className="whitespace-pre-wrap px-4 pb-4 leading-6 sm:px-6">{post.content}</p>
 
-          <img
-            className="max-h-140 w-full bg-slate-100 object-cover"
-            src={samplePost.image}
-            alt={samplePost.imageAlt}
-          />
+          {post.images?.length > 0 ? (
+            post.images.map((imageUrl, index) => (
+              <img
+                alt={`Post image ${index + 1}`}
+                className="max-h-[36rem] w-full bg-slate-100 object-contain"
+                key={`${imageUrl}-${index}`}
+                src={imageUrl}
+              />
+            ))
+          ) : (
+            <div className="mx-4 mb-4 rounded-lg bg-slate-50 px-4 py-8 text-center text-sm text-slate-400 sm:mx-6">
+              This post has no image attached.
+            </div>
+          )}
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 text-sm text-slate-500 sm:px-6">
-            <span>📍 {samplePost.location}</span>
-            ❤️ {samplePost.likes}
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 text-sm text-slate-500 sm:px-6">
+            <span className="inline-flex items-center gap-1.5">
+              <Heart aria-hidden="true" className="text-rose-500" size={16} />
+              {post.likesCount ?? 0} {(post.likesCount ?? 0) === 1 ? "like" : "likes"}
+            </span>
+            <span>{comments.length} {comments.length === 1 ? "comment" : "comments"}</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 px-4 py-3 sm:px-6">
-            {/* TODO: Connect this to the protected like API after authentication is wired up. */}
+          <div className="grid grid-cols-2 gap-2 px-4 py-3 sm:px-6">
             <button
-              className="cursor-not-allowed rounded-lg bg-slate-100 py-2 text-sm font-medium text-slate-400"
-              disabled
-              title="Like will be available when the protected API is connected"
+              aria-pressed={isLiked}
+              className={`inline-flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium transition-colors disabled:cursor-wait disabled:opacity-60 ${
+                isLiked
+                  ? "bg-rose-50 text-rose-600 hover:bg-rose-100"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-rose-600"
+              }`}
+              disabled={isLikeLoading}
+              onClick={handleLikeClick}
               type="button"
             >
-              ♡ Like
+              <Heart aria-hidden="true" fill={isLiked ? "currentColor" : "none"} size={17} />
+              {isLikeLoading ? "Updating…" : isLiked ? "Liked" : "Like"}
             </button>
-
             <button
-              className="rounded-lg py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              className="inline-flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
               onClick={() => document.getElementById("comment-input")?.focus()}
               type="button"
             >
-              💬 Comment
-            </button>
-
-            <button
-              className="rounded-lg py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
-              type="button"
-            >
-              ↗ Share
+              <MessageCircle aria-hidden="true" size={17} /> Comment
             </button>
           </div>
+          {actionError && <p className="px-4 pb-3 text-sm text-red-600 sm:px-6" role="alert">{actionError}</p>}
         </article>
 
         <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              Comments{" "}
-              <span className="text-sm text-slate-500">
-                ({comments.length})
-              </span>
-            </h2>
-            <button
-              className="text-sm text-slate-500 hover:text-indigo-600"
-              type="button"
-            >
-              Sort by: <span className="font-medium text-indigo-600">Top⌄</span>
-            </button>
-          </div>
+          <h2 className="mb-4 text-lg font-semibold">Comments</h2>
 
-          <form onSubmit={handleCommentSubmit} className="mb-5">
-            <label className="sr-only" htmlFor="comment-input">
-              Write a comment
-            </label>
+          <form className="mb-5" onSubmit={handleCommentSubmit}>
+            <label className="sr-only" htmlFor="comment-input">Write a comment</label>
             <div className="flex gap-3">
-              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-100 font-semibold text-indigo-700">
-                Y
-              </div>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-100 font-semibold text-indigo-700">
+                {currentUserName.charAt(0).toUpperCase()}
+              </span>
               <div className="min-w-0 flex-1">
                 <textarea
-                  id="comment-input"
                   className="w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  id="comment-input"
                   onChange={(event) => setCommentText(event.target.value)}
-                  placeholder={`Add a thoughtful comment as @you...`}
+                  placeholder={`Add a comment as @${user?.username || "you"}…`}
                   rows="2"
                   value={commentText}
                 />
                 <div className="mt-2 flex justify-end">
                   <button
                     className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={!commentText.trim()}
+                    disabled={!commentText.trim() || isCommentLoading}
                     type="submit"
                   >
-                    Submit
+                    {isCommentLoading ? "Posting…" : "Comment"}
                   </button>
                 </div>
               </div>
             </div>
           </form>
 
-          <div className="space-y-3">
-            {comments.map((comment) => (
-              <article
-                className="flex gap-3 rounded-lg bg-indigo-50/70 p-3"
-                key={comment.id}
-              >
-                {comment.avatar ? (
-                  <img
-                    className="h-9 w-9 shrink-0 rounded-full object-cover"
-                    src={comment.avatar}
-                    alt=""
-                  />
-                ) : (
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-200 font-semibold text-indigo-800">
-                    Y
-                  </div>
-                )}
+          {commentsError && <p className="mb-3 text-sm text-red-600" role="alert">{commentsError}</p>}
+          {comments.length === 0 && !commentsError && (
+            <p className="text-sm text-slate-500">No comments yet. Start the conversation.</p>
+          )}
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-sm font-semibold">
-                      {comment.name}
+          <div className="space-y-3">
+            {comments.map((comment) => {
+              const commentAuthor = comment.author ?? {};
+              const commentAuthorName = getDisplayName(commentAuthor);
+
+              return (
+                <article className="flex gap-3 rounded-lg bg-indigo-50/70 p-3" key={comment._id}>
+                  {commentAuthor.avatarUrl ? (
+                    <img
+                      alt=""
+                      className="h-9 w-9 shrink-0 rounded-full object-cover"
+                      src={commentAuthor.avatarUrl}
+                    />
+                  ) : (
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-200 font-semibold text-indigo-800">
+                      {commentAuthorName.charAt(0).toUpperCase()}
                     </span>
-                    <span className="text-xs text-slate-500">
-                      @{comment.username} · {comment.age}
-                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-sm font-semibold">{commentAuthorName}</span>
+                      <span className="text-xs text-slate-500">
+                        {commentAuthor.username ? `@${commentAuthor.username} · ` : ""}
+                        {comment.createdAt ? new Date(comment.createdAt).toLocaleString() : ""}
+                      </span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-5">{comment.content}</p>
                   </div>
-                  <p className="mt-1 text-sm leading-5">{comment.text}</p>
-                  
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </section>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
 
