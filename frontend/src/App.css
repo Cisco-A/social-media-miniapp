@@ -445,6 +445,48 @@ a {
   object-fit: cover;
 }
 
+.profile-post {
+  display: flex;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #f2f3fa;
+  color: #44485c;
+  text-decoration: none;
+}
+
+.profile-post img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-post-text {
+  display: -webkit-box;
+  overflow: hidden;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+}
+
+.posts-feedback {
+  margin: 0;
+  padding: 24px 12px;
+  color: #777b90;
+  font-size: 13px;
+  text-align: center;
+}
+
+.posts-feedback-error {
+  color: #b42318;
+}
+
 .archive-button {
   display: block;
   margin: 14px auto 0;

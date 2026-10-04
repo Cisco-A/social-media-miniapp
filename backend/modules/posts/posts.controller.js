@@ -1,6 +1,7 @@
 import {
   createPostService,
   getPostsService,
+  getMyPostsService,
   getPostByIdService,
   updatePostService,
   deletePostService,
@@ -44,6 +45,18 @@ const getPosts = async (req, res) => {
   }
 };
 
+const getMyPosts = async (req, res) => {
+	try {
+		const result = await getMyPostsService(req.user.userId, req.query);
+		return respond(res, result);
+	} catch (error) {
+		console.error("Error getting your posts:", error);
+		return res
+			.status(500)
+			.json({ status: false, message: "Failed to get your posts" });
+	}
+};
+
 const getPostById = async (req, res) => {
   try {
     const result = await getPostByIdService(req.params.id);
@@ -84,4 +97,4 @@ const deletePost = async (req, res) => {
   }
 };
 
-export { createPost, getPosts, getPostById, updatePost, deletePost };
+export { createPost, getPosts, getMyPosts, getPostById, updatePost, deletePost };

@@ -3,6 +3,7 @@ import express from "express";
 import {
   createPost,
   getPosts,
+  getMyPosts,
   getPostById,
   updatePost,
   deletePost,
@@ -21,6 +22,8 @@ router.post(
 );
 
 router.get("/", authenticate, getPosts);
+
+router.get("/me", authenticate, getMyPosts);
 
 router.get("/:id", authenticate, getPostById);
 
