@@ -3,12 +3,12 @@ import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeft, Heart, MessageCircle } from "lucide-react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import dayjs from "dayjs";
 
 const getErrorMessage = (error, fallback) =>
   error.response?.data?.message ?? fallback;
 
-const getDisplayName = (user) =>
-  user?.displayName || user?.username || "User";
+const getDisplayName = (user) => user?.displayName || user?.username || "User";
 
 function Post() {
   const { id } = useParams();
@@ -61,15 +61,18 @@ function Post() {
           setIsLiked(
             Boolean(
               currentUserId &&
-                likes.some((like) => {
-                  const likedUserId = like.userId?._id ?? like.userId;
-                  return String(likedUserId) === String(currentUserId);
-                }),
+              likes.some((like) => {
+                const likedUserId = like.userId?._id ?? like.userId;
+                return String(likedUserId) === String(currentUserId);
+              }),
             ),
           );
           setPost((currentPost) =>
             currentPost
-              ? { ...currentPost, likesCount: fetchedPost.likesCount ?? likes.length }
+              ? {
+                  ...currentPost,
+                  likesCount: fetchedPost.likesCount ?? likes.length,
+                }
               : currentPost,
           );
         } else {
@@ -140,7 +143,8 @@ function Post() {
     try {
       const response = await api.post(`/comments/posts/${id}`, { content });
       const comment = response.data?.data;
-      if (comment) setComments((currentComments) => [comment, ...currentComments]);
+      if (comment)
+        setComments((currentComments) => [comment, ...currentComments]);
       setCommentText("");
     } catch (error) {
       setCommentsError(getErrorMessage(error, "Unable to add your comment."));
@@ -151,7 +155,7 @@ function Post() {
 
   if (isLoading) {
     return (
-      <main className="min-h-[70vh] bg-slate-50 px-4 py-10 text-center text-slate-600" role="status">
+      <main className="min-h-[70vh] bg-slate-50 px-4 py-10 text-center text-slate-600">
         Loading post…
       </main>
     );
@@ -164,7 +168,10 @@ function Post() {
           <p className="text-red-700" role="alert">
             {errorMessage || "Post not found."}
           </p>
-          <Link className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:underline" to="/posts">
+          <Link
+            className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:underline"
+            to="/posts"
+          >
             ← Back to feed
           </Link>
         </div>
@@ -204,18 +211,22 @@ function Post() {
               <p className="truncate font-semibold">{authorName}</p>
               <p className="text-xs text-slate-500">
                 {author.username ? `@${author.username} · ` : ""}
-                {post.createdAt ? new Date(post.createdAt).toLocaleString() : ""}
+                {post.createdAt
+                  ? dayjs(post.createdAt).format("D MMMM YYYY, h:mm A")
+                  : ""}
               </p>
             </div>
           </div>
 
-          <p className="whitespace-pre-wrap px-4 pb-4 leading-6 sm:px-6">{post.content}</p>
+          <p className="whitespace-pre-wrap px-4 pb-4 leading-6 sm:px-6">
+            {post.content}
+          </p>
 
           {post.images?.length > 0 ? (
             post.images.map((imageUrl, index) => (
               <img
                 alt={`Post image ${index + 1}`}
-                className="max-h-[36rem] w-full bg-slate-100 object-contain"
+                className="max-h-144 w-full bg-slate-100 object-contain"
                 key={`${imageUrl}-${index}`}
                 src={imageUrl}
               />
@@ -229,9 +240,12 @@ function Post() {
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 text-sm text-slate-500 sm:px-6">
             <span className="inline-flex items-center gap-1.5">
               <Heart aria-hidden="true" className="text-rose-500" size={16} />
-              {post.likesCount ?? 0} {(post.likesCount ?? 0) === 1 ? "like" : "likes"}
+              {post.likesCount ?? 0}{" "}
+              {(post.likesCount ?? 0) === 1 ? "like" : "likes"}
             </span>
-            <span>{comments.length} {comments.length === 1 ? "comment" : "comments"}</span>
+            <span>
+              {comments.length} {comments.length === 1 ? "comment" : "comments"}
+            </span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 px-4 py-3 sm:px-6">
@@ -246,7 +260,11 @@ function Post() {
               onClick={handleLikeClick}
               type="button"
             >
-              <Heart aria-hidden="true" fill={isLiked ? "currentColor" : "none"} size={17} />
+              <Heart
+                aria-hidden="true"
+                fill={isLiked ? "currentColor" : "none"}
+                size={17}
+              />
               {isLikeLoading ? "Updating…" : isLiked ? "Liked" : "Like"}
             </button>
             <button
@@ -257,14 +275,20 @@ function Post() {
               <MessageCircle aria-hidden="true" size={17} /> Comment
             </button>
           </div>
-          {actionError && <p className="px-4 pb-3 text-sm text-red-600 sm:px-6" role="alert">{actionError}</p>}
+          {actionError && (
+            <p className="px-4 pb-3 text-sm text-red-600 sm:px-6" role="alert">
+              {actionError}
+            </p>
+          )}
         </article>
 
         <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="mb-4 text-lg font-semibold">Comments</h2>
 
           <form className="mb-5" onSubmit={handleCommentSubmit}>
-            <label className="sr-only" htmlFor="comment-input">Write a comment</label>
+            <label className="sr-only" htmlFor="comment-input">
+              Write a comment
+            </label>
             <div className="flex gap-3">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-100 font-semibold text-indigo-700">
                 {currentUserName.charAt(0).toUpperCase()}
@@ -291,9 +315,15 @@ function Post() {
             </div>
           </form>
 
-          {commentsError && <p className="mb-3 text-sm text-red-600" role="alert">{commentsError}</p>}
+          {commentsError && (
+            <p className="mb-3 text-sm text-red-600" role="alert">
+              {commentsError}
+            </p>
+          )}
           {comments.length === 0 && !commentsError && (
-            <p className="text-sm text-slate-500">No comments yet. Start the conversation.</p>
+            <p className="text-sm text-slate-500">
+              No comments yet. Start the conversation.
+            </p>
           )}
 
           <div className="space-y-3">
@@ -302,7 +332,10 @@ function Post() {
               const commentAuthorName = getDisplayName(commentAuthor);
 
               return (
-                <article className="flex gap-3 rounded-lg bg-indigo-50/70 p-3" key={comment._id}>
+                <article
+                  className="flex gap-3 rounded-lg bg-indigo-50/70 p-3"
+                  key={comment._id}
+                >
                   {commentAuthor.avatarUrl ? (
                     <img
                       alt=""
@@ -316,13 +349,23 @@ function Post() {
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline gap-x-2">
-                      <span className="text-sm font-semibold">{commentAuthorName}</span>
+                      <span className="text-sm font-semibold">
+                        {commentAuthorName}
+                      </span>
                       <span className="text-xs text-slate-500">
-                        {commentAuthor.username ? `@${commentAuthor.username} · ` : ""}
-                        {comment.createdAt ? new Date(comment.createdAt).toLocaleString() : ""}
+                        {commentAuthor.username
+                          ? `@${commentAuthor.username} · `
+                          : ""}
+                        {comment.createdAt
+                          ? dayjs(comment.createdAt).format(
+                              "D MMMM YYYY, h:mm A",
+                            )
+                          : ""}
                       </span>
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-5">{comment.content}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-5">
+                      {comment.content}
+                    </p>
                   </div>
                 </article>
               );
