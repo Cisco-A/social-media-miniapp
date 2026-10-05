@@ -1,4 +1,5 @@
 import {
+  uploadPostImages,
   createPostService,
   getPostsService,
   getMyPostsService,
@@ -6,6 +7,7 @@ import {
   updatePostService,
   deletePostService,
 } from "./posts.service.js";
+
 
 const respond = (res, result) => {
   const { code, error, successMessage, ...data } = result;
@@ -23,7 +25,13 @@ const respond = (res, result) => {
 
 const createPost = async (req, res) => {
   try {
-    const result = await createPostService(req.user.userId, req.body);
+    const data = { ...req.body };
+
+    if (req.files?.length) {
+      data.images = await uploadPostImages(req.files.map((f) => f.buffer));
+    }
+
+    const result = await createPostService(req.user.userId, data);
     return respond(res, result);
   } catch (error) {
     console.error("Error creating post:", error);
@@ -32,6 +40,7 @@ const createPost = async (req, res) => {
       .json({ status: false, message: "Failed to create post" });
   }
 };
+
 
 const getPosts = async (req, res) => {
   try {
@@ -71,10 +80,16 @@ const getPostById = async (req, res) => {
 
 const updatePost = async (req, res) => {
   try {
+    const data = { ...req.body };
+
+    if (req.files?.length) {
+      data.images = await uploadPostImages(req.files.map((f) => f.buffer));
+    }
+
     const result = await updatePostService(
       req.user.userId,
       req.params.id,
-      req.body,
+      data,
     );
     return respond(res, result);
   } catch (error) {
@@ -84,6 +99,7 @@ const updatePost = async (req, res) => {
       .json({ status: false, message: "Failed to update post" });
   }
 };
+
 
 const deletePost = async (req, res) => {
   try {

@@ -9,17 +9,20 @@ import {
   deletePost,
 } from "./posts.controller.js";
 
-
 import authenticate from "../../middlewares/auth.middleware.js";
+import upload from "../../middlewares/upload.middleware.js";
 
 const router = express.Router();
+
 
 router.post(
   "/",
   authenticate,
+  upload.array("images", 5),
   // validation.validate(createPostValidation),
   createPost,
 );
+
 
 router.get("/", authenticate, getPosts);
 
@@ -30,9 +33,11 @@ router.get("/:id", authenticate, getPostById);
 router.patch(
   "/:id",
   authenticate,
+  upload.array("images", 5),
   // validation.validate(updatePostValidation),
   updatePost,
 );
+
 
 router.delete("/:id", authenticate, deletePost);
 

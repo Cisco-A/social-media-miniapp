@@ -1,5 +1,26 @@
 import mongoose from "mongoose";
 import Post from "./posts.schema.js";
+import cloudinary from "../../config/cloudinary.js";
+
+
+const uploadPostImages = (fileBuffers = []) => {
+	const uploads = fileBuffers.map(
+		(buffer) =>
+			new Promise((resolve, reject) => {
+				const stream = cloudinary.uploader.upload_stream(
+					{ folder: "mingle/posts", resource_type: "image" },
+					(error, result) => {
+						if (error) return reject(error);
+						if (!result?.secure_url)
+							return reject(new Error("Cloudinary did not return an image URL"));
+						resolve(result.secure_url);
+					},
+				);
+				stream.end(buffer);
+			}),
+	);
+	return Promise.all(uploads);
+};
 
 const authorFields = "username displayName avatarUrl";
 
@@ -207,6 +228,7 @@ const deletePostService = async (authorId, postId) => {
 };
 
 export {
+	uploadPostImages,
 	createPostService,
 	getPostsService,
 	getMyPostsService,
