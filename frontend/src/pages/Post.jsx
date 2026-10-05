@@ -106,26 +106,38 @@ function Post() {
   async function handleLikeClick() {
     if (!post || isLikeLoading) return;
 
+    const wasLiked = isLiked;
+    const previousLikesCount = post.likesCount ?? 0;
+    const nextLiked = !wasLiked;
+
+    // Update the UI immediately, then undo it if the API request fails.
+    setIsLiked(nextLiked);
+    setPost((currentPost) =>
+      currentPost
+        ? {
+            ...currentPost,
+            likesCount: nextLiked
+              ? previousLikesCount + 1
+              : Math.max(0, previousLikesCount - 1),
+          }
+        : currentPost,
+    );
     setIsLikeLoading(true);
     setActionError("");
 
     try {
-      if (isLiked) {
+      if (wasLiked) {
         await api.delete(`/likes/${id}`);
-        setIsLiked(false);
-        setPost((currentPost) => ({
-          ...currentPost,
-          likesCount: Math.max(0, (currentPost.likesCount ?? 0) - 1),
-        }));
       } else {
         await api.post(`/likes/${id}`);
-        setIsLiked(true);
-        setPost((currentPost) => ({
-          ...currentPost,
-          likesCount: (currentPost.likesCount ?? 0) + 1,
-        }));
       }
     } catch (error) {
+      setIsLiked(wasLiked);
+      setPost((currentPost) =>
+        currentPost
+          ? { ...currentPost, likesCount: previousLikesCount }
+          : currentPost,
+      );
       setActionError(getErrorMessage(error, "Unable to update your like."));
     } finally {
       setIsLikeLoading(false);
@@ -257,6 +269,7 @@ function Post() {
                   : "text-slate-600 hover:bg-slate-50 hover:text-rose-600"
               }`}
               disabled={isLikeLoading}
+              aria-busy={isLikeLoading}
               onClick={handleLikeClick}
               type="button"
             >
@@ -265,7 +278,7 @@ function Post() {
                 fill={isLiked ? "currentColor" : "none"}
                 size={17}
               />
-              {isLikeLoading ? "Updating…" : isLiked ? "Liked" : "Like"}
+              {isLiked ? "Liked" : "Like"}
             </button>
             <button
               className="inline-flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
