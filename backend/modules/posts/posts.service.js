@@ -1,5 +1,26 @@
 import mongoose from "mongoose";
 import Post from "./posts.schema.js";
+import cloudinary from "../../config/cloudinary.js";
+
+
+const uploadPostImages = (fileBuffers = []) => {
+	const uploads = fileBuffers.map(
+		(buffer) =>
+			new Promise((resolve, reject) => {
+				const stream = cloudinary.uploader.upload_stream(
+					{ folder: "mingle/posts", resource_type: "image" },
+					(error, result) => {
+						if (error) return reject(error);
+						if (!result?.secure_url)
+							return reject(new Error("Cloudinary did not return an image URL"));
+						resolve(result.secure_url);
+					},
+				);
+				stream.end(buffer);
+			}),
+	);
+	return Promise.all(uploads);
+};
 
 const authorFields = "username displayName avatarUrl";
 
@@ -73,7 +94,8 @@ const getPostsService = async (query = {}) => {
 			.sort({ createdAt: -1 })
 			.skip(skip)
 			.limit(limit)
-			.populate("author", authorFields),
+			.populate("author", authorFields)
+			.populate({ path: "comments", populate: { path: "author", select: authorFields } }),
 		Post.countDocuments(),
 	]);
 
@@ -101,7 +123,8 @@ const getMyPostsService = async (authorId, query = {}) => {
 			.sort({ createdAt: -1 })
 			.skip(skip)
 			.limit(limit)
-			.populate("author", authorFields),
+			.populate("author", authorFields)
+			.populate({ path: "comments", populate: { path: "author", select: authorFields } }),
 		Post.countDocuments(filter),
 	]);
 
@@ -123,7 +146,9 @@ const getPostByIdService = async (postId) => {
 		return invalidIdResult();
 	}
 
-	const post = await Post.findById(postId).populate("author", authorFields);
+	const post = await Post.findById(postId)
+		.populate("author", authorFields)
+		.populate({ path: "comments", populate: { path: "author", select: authorFields } });
 
 	if (!post) {
 		return {
@@ -203,6 +228,7 @@ const deletePostService = async (authorId, postId) => {
 };
 
 export {
+	uploadPostImages,
 	createPostService,
 	getPostsService,
 	getMyPostsService,

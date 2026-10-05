@@ -11,6 +11,7 @@ const postSchema = new mongoose.Schema(
     content: { type: String, required: true, trim: true, maxlength: 2000 },
     images: { type: [String], default: [] },
     likesCount: { type: Number, default: 0 },
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     commentCount: { type: Number, default: 0 },
   },
   { timestamps: true },
