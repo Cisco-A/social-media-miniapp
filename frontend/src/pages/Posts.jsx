@@ -40,6 +40,7 @@ const posts = [
 const Posts = () => {
   const { user } = useAuth();
   const [allPosts, setAllPosts] = useState([]);
+
   const navigate = useNavigate();
   const goToCreatePost = () => {
     navigate("/posts/create", { replace: true });
@@ -98,7 +99,7 @@ const Posts = () => {
         {/* POSTS */}
         <div className="grid grid-cols-1 gap-5 sm:gap-6">
           {allPosts.map((post) => (
-            <Feed key={post._id} post={post} comments={false} />
+            <Feed key={post._id} post={post} comments={true} />
           ))}
         </div>
 
