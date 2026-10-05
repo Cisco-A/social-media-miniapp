@@ -214,14 +214,14 @@ function Profile() {
                 <strong>{postCount}</strong>
                 <span>Posts</span>
               </div>
-              <div>
+              {/* <div>
                 <strong>0</strong>
                 <span>Followers</span>
-              </div>
-              <div>
+              </div> */}
+              {/* <div>
                 <strong>0</strong>
                 <span>Following</span>
-              </div>
+              </div> */}
             </div>
           </div>
         </section>
@@ -330,17 +330,23 @@ function Profile() {
               <button className="tab-active" type="button">
                 ▦ Posts <span>{postCount}</span>
               </button>
-              <button type="button">♡ Liked Posts</button>
-              <button type="button">♧ Saved</button>
+              {/* <button type="button">♡ Liked Posts</button> */}
+              {/* <button type="button">♧ Saved</button> */}
               <span className="sort-label">Sorted by Latest</span>
             </div>
 
             {isPostsLoading ? (
-              <p className="posts-feedback" role="status">Loading your posts…</p>
+              <p className="posts-feedback" role="status">
+                Loading your posts…
+              </p>
             ) : postsError ? (
-              <p className="posts-feedback posts-feedback-error" role="alert">{postsError}</p>
+              <p className="posts-feedback posts-feedback-error" role="alert">
+                {postsError}
+              </p>
             ) : posts.length === 0 ? (
-              <p className="posts-feedback">You haven’t shared any posts yet.</p>
+              <p className="posts-feedback">
+                You haven’t shared any posts yet.
+              </p>
             ) : (
               <div className="post-grid">
                 {posts.map((post) => (
@@ -350,7 +356,10 @@ function Profile() {
                     key={post._id}
                   >
                     {post.images?.[0] ? (
-                      <img src={post.images[0]} alt={post.content || "Your post"} />
+                      <img
+                        src={post.images[0]}
+                        alt={post.content || "Your post"}
+                      />
                     ) : (
                       <span className="profile-post-text">{post.content}</span>
                     )}
@@ -360,7 +369,9 @@ function Profile() {
             )}
 
             {postsError && !isPostsLoading && posts.length > 0 && (
-              <p className="posts-feedback posts-feedback-error" role="alert">{postsError}</p>
+              <p className="posts-feedback posts-feedback-error" role="alert">
+                {postsError}
+              </p>
             )}
 
             {hasMorePosts && (

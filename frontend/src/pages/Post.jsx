@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { ArrowLeft, Heart, MessageCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MessageCircle,
+} from "lucide-react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import dayjs from "dayjs";
@@ -26,6 +32,9 @@ function Post() {
   const [commentsError, setCommentsError] = useState("");
   const [actionError, setActionError] = useState("");
 
+  // Slider state
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   useEffect(() => {
     let isCurrent = true;
 
@@ -37,6 +46,7 @@ function Post() {
       setPost(null);
       setComments([]);
       setIsLiked(false);
+      setCurrentImageIndex(0);
 
       try {
         const response = await api.get(`/posts/${id}`);
@@ -103,6 +113,21 @@ function Post() {
     };
   }, [id, user?._id, user?.id]);
 
+  const handlePrevImage = () => {
+    if (!post?.images?.length) return;
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? post.images.length - 1 : prevIndex - 1,
+    );
+  };
+
+  const handleNextImage = () => {
+    if (!post?.images?.length) return;
+    if (currentImageIndex === post.images.length - 1) return;
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === post.images.length - 1 ? 0 : prevIndex + 1,
+    );
+  };
+
   async function handleLikeClick() {
     if (!post || isLikeLoading) return;
 
@@ -110,7 +135,6 @@ function Post() {
     const previousLikesCount = post.likesCount ?? 0;
     const nextLiked = !wasLiked;
 
-    // Update the UI immediately, then undo it if the API request fails.
     setIsLiked(nextLiked);
     setPost((currentPost) =>
       currentPost
@@ -194,6 +218,7 @@ function Post() {
   const author = post.author ?? {};
   const authorName = getDisplayName(author);
   const currentUserName = getDisplayName(user);
+  const hasMultipleImages = post.images?.length > 1;
 
   return (
     <main className="min-h-[70vh] bg-slate-50 px-4 py-6 text-slate-800 sm:py-8">
@@ -234,15 +259,68 @@ function Post() {
             {post.content}
           </p>
 
+          {/* Image Slider Section */}
           {post.images?.length > 0 ? (
-            post.images.map((imageUrl, index) => (
-              <img
-                alt={`Post image ${index + 1}`}
-                className="max-h-144 w-full bg-slate-100 object-contain"
-                key={`${imageUrl}-${index}`}
-                src={imageUrl}
-              />
-            ))
+            <div className="relative mx-2 mb-4 group">
+              <div className="overflow-hidden rounded-xl bg-slate-100">
+                <img
+                  alt={`Post image ${currentImageIndex + 1}`}
+                  className="max-h-144 w-full object-contain p-2 rounded-xl transition-all duration-300"
+                  src={post.images[currentImageIndex]}
+                />
+              </div>
+
+              {/* Slider Controls for Multiple Images */}
+              {hasMultipleImages && (
+                <>
+                  {/* Left Arrow Button */}
+                  {currentImageIndex !== 0 && (
+                    <button
+                      onClick={handlePrevImage}
+                      type="button"
+                      aria-label="Previous image"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/60 text-white backdrop-blur-sm transition-colors hover:bg-slate-900 focus:outline-none"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                  )}
+
+                  {/* Right Arrow Button */}
+                  {currentImageIndex !== post.images.length - 1 && (
+                    <button
+                      onClick={handleNextImage}
+                      type="button"
+                      aria-label="Next image"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/60 text-white backdrop-blur-sm transition-colors hover:bg-slate-900 focus:outline-none"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  )}
+
+                  {/* Top-Right Badge Indicator */}
+                  <div className="absolute top-4 right-4 rounded-full bg-slate-900/60 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+                    {currentImageIndex + 1} / {post.images.length}
+                  </div>
+
+                  {/* Bottom Dot Indicators */}
+                  <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-slate-900/40 px-2 py-1 backdrop-blur-sm">
+                    {post.images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        type="button"
+                        aria-label={`Go to slide ${idx + 1}`}
+                        className={`h-2 rounded-full transition-all ${
+                          currentImageIndex === idx
+                            ? "w-4 bg-white"
+                            : "w-2 bg-white/50 hover:bg-white/80"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           ) : (
             <div className="mx-4 mb-4 rounded-lg bg-slate-50 px-4 py-8 text-center text-sm text-slate-400 sm:mx-6">
               This post has no image attached.

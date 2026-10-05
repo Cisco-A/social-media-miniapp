@@ -11,7 +11,7 @@ import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 
-const Feed = ({ post, showComment }) => {
+const Feed = ({ post, comments }) => {
   const navigate = useNavigate();
 
   const [commentsCount, setCommentsCount] = useState(0);
@@ -35,7 +35,9 @@ const Feed = ({ post, showComment }) => {
         className="
                 w-full overflow-hidden rounded-xl
                 bg-white shadow-sm
+                hover:cursor-pointer
               "
+        onClick={goToPost}
       >
         {/* POST HEADER */}
         <div
@@ -46,14 +48,20 @@ const Feed = ({ post, showComment }) => {
                 "
         >
           <div className="flex min-w-0 items-center gap-3">
-            <img
-              src={post.author?.avatarUrl ? post.author?.avatarUrl : null}
-              alt={post.author?.displayName}
-              className="
+            {post.author?.avatarUrl ? (
+              <img
+                src={post.author?.avatarUrl}
+                alt={post.author?.displayName}
+                className="
                       h-10 w-10 shrink-0 rounded-full object-cover
                       sm:h-11 sm:w-11
                     "
-            />
+              />
+            ) : (
+              <p className="small-avatar">
+                {post.author?.displayName.charAt(0).toUpperCase()}
+              </p>
+            )}
 
             <div className="min-w-0">
               <div className="flex items-center gap-1">
@@ -77,7 +85,7 @@ const Feed = ({ post, showComment }) => {
           </div>
 
           <button
-            onClick={goToPost}
+            // onClick={goToPost}
             className="
                     shrink-0 rounded-full p-2
                     text-gray-500 hover:bg-gray-100
@@ -166,7 +174,7 @@ const Feed = ({ post, showComment }) => {
           >
             {/* LIKE */}
             <button
-              onClick={goToPost}
+              // onClick={goToPost}
               className="
                       flex items-center gap-1.5
                       whitespace-nowrap
@@ -184,7 +192,7 @@ const Feed = ({ post, showComment }) => {
 
             {/* COMMENTS */}
             <button
-              onClick={goToPost}
+              // onClick={goToPost}
               className="
                       flex items-center gap-1.5
                       whitespace-nowrap
@@ -223,7 +231,7 @@ const Feed = ({ post, showComment }) => {
         </div>
 
         {/* COMMENTS */}
-        {post.showComments && (
+        {comments && (
           <div className="bg-[#f0f4ff] px-4 pb-5 sm:px-7">
             {/* COMMENT HEADER */}
             <div
@@ -238,17 +246,20 @@ const Feed = ({ post, showComment }) => {
                         text-[#5052db]
                       "
               >
-                View all {post.comments} comments
+                {commentsCount
+                  ? `View ${commentsCount <= 1 ? "" : "all"} ${commentsCount}
+                ${commentsCount && commentsCount === 1 ? "comment" : "comments"}`
+                  : null}
               </button>
 
               <span className="shrink-0 text-gray-500">Top comment</span>
             </div>
 
             {/* COMMENT */}
-            {showComment && <Comment />}
+            {comments && <Comment />}
 
             {/* COMMENT INPUT */}
-            {showComment && <CommentInput />}
+            {comments && <CommentInput />}
           </div>
         )}
       </article>
