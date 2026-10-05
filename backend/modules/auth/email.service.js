@@ -1,123 +1,22 @@
-// import { Resend } from "resend";
-// import dotenv from "dotenv";
-
-// dotenv.config();
-
-// const resend = new Resend(process.env.RESEND_PUBLIC_KEY);
-
-// export const sendEmailVerificationOtp = async (email, otp) => {
-//   const { data, error } = await resend.emails.send({
-//     from: "Your App <onboarding@resend.dev>",
-//     to: [email],
-//     subject: "Your OTP Code 🔐",
-
-//     html: `
-//       <div>
-//         <h1>Here is your otp code:</h1>
-
-//         <h2>${otp}</h2>
-
-//         <p>
-//           This OTP will expire in 10 minutes.
-//         </p>
-
-//         <p>
-//           If you did not request a password reset,
-//           you can safely ignore this email.
-//         </p>
-//         <p>&copy; ${new Date().getFullYear()} · Mini Social Media app</p>
-//         <p>Made with ❤️ by Group 20</p>
-//       </div>
-//     `,
-//   });
-
-//   if (error) {
-//     throw new Error(error.message);
-//   }
-
-//   return data;
-// };
-
-// export const sendResetOtpEmail = async (email, otp) => {
-//   const { data, error } = await resend.emails.send({
-//     from: "Your App <onboarding@resend.dev>",
-//     to: [email],
-//     subject: "Your Password Reset OTP 🔐",
-
-//     html: `
-//       <div>
-//         <h1>Password Reset</h1>
-
-//         <p>You requested to reset your password.</p>
-
-//         <p>Your OTP is:</p>
-
-//         <h2>${otp}</h2>
-
-//         <p>
-//           This OTP will expire in 10 minutes.
-//         </p>
-
-//         <p>
-//           If you did not request a password reset,
-//           you can safely ignore this email.
-//         </p>
-//       </div>
-//     `,
-//   });
-
-//   if (error) {
-//     throw new Error(error.message);
-//   }
-
-//   return data;
-// };
-
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import dotenv from "dotenv";
 
 dotenv.config();
 
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const FRONTEND_URL = process.env.FRONTEND_URL;
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-  connectionTimeout: 10000, // 10s — fail fast instead of hanging
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-  tls: {
-    rejectUnauthorized: false, // allow self-signed certs in some cloud envs
-  },
-});
-
-transporter.verify((error) => {
-  if (error) {
-    console.error(
-      "[email] SMTP transporter verification failed:",
-      error.message,
-    );
-  } else {
-    console.log("[email] SMTP transporter is ready");
-  }
-});
-
-// await transporter.verify();
+const FROM_ADDRESS = process.env.EMAIL_FROM;
 
 export const sendEmailVerificationOtp = async (email, otp) => {
   try {
-    const info = await transporter.sendMail({
-      from: "Your App <onboarding@resend.dev>",
+    const { data, error } = await resend.emails.send({
+      from: FROM_ADDRESS,
       to: [email],
-      subject: "Your Email verification OTP Code 🔐",
+      subject: "Your Email Verification OTP Code 🔐",
       html: `
       <div>
-        <h1>Here is your otp code:</h1>
+        <h1>Here is your OTP code:</h1>
 
         <h2>${otp}</h2>
 
@@ -126,7 +25,7 @@ export const sendEmailVerificationOtp = async (email, otp) => {
         </p>
 
         <p>
-          If you did not request a password reset,
+          If you did not request this,
           you can safely ignore this email.
         </p>
         <p>&copy; ${new Date().getFullYear()} · Mini Social Media app</p>
@@ -134,8 +33,14 @@ export const sendEmailVerificationOtp = async (email, otp) => {
       </div>
     `,
     });
-    console.log("Email sent successfully", info.messageId);
-    return info;
+
+    if (error) {
+      console.error("[email] Failed to send verification OTP:", error.message);
+      throw new Error(error.message);
+    }
+
+    console.log("[email] Verification OTP sent successfully", data?.id);
+    return data;
   } catch (error) {
     console.error("Error sending email:", error);
     throw error;
@@ -144,13 +49,17 @@ export const sendEmailVerificationOtp = async (email, otp) => {
 
 export const sendResetOtpEmail = async (email, otp) => {
   try {
-    const info = await transporter.sendMail({
-      from: "admin.mingle-social@app.com",
+    const { data, error } = await resend.emails.send({
+      from: FROM_ADDRESS,
       to: [email],
-      subject: "Your Reset OTP Code 🔐",
+      subject: "Your Password Reset OTP Code 🔐",
       html: `
       <div>
-        <h1>Here is your otp code:</h1>
+        <h1>Password Reset</h1>
+
+        <p>You requested to reset your password.</p>
+
+        <p>Your OTP is:</p>
 
         <h2>${otp}</h2>
 
@@ -167,39 +76,52 @@ export const sendResetOtpEmail = async (email, otp) => {
       </div>
     `,
     });
-    console.log("Email sent successfully", info.messageId);
-    return info;
+
+    if (error) {
+      console.error("[email] Failed to send reset OTP:", error.message);
+      throw new Error(error.message);
+    }
+
+    console.log("[email] Reset OTP sent successfully", data?.id);
+    return data;
   } catch (error) {
     console.error("Error sending email:", error);
     throw error;
   }
 };
+
 export const sendWelcomeEmail = async (email, name) => {
   try {
-    const info = await transporter.sendMail({
-      from: "admin.mingle-social@app.com",
+    const { data, error } = await resend.emails.send({
+      from: FROM_ADDRESS,
       to: [email],
-      subject: "Welcome Message from Mingle social app 👥",
+      subject: "Welcome to Mingle Social App 👥",
       html: `
       <div>
         <h1>Hi ${name} 👋</h1>
-        <img 
-          src="${FRONTEND_URL}/public/mingle-logo.svg" 
-          alt="Mingle social app logo" 
-          width="300" 
-          height="200" 
-          border="0" 
+        <img
+          src="${FRONTEND_URL}/public/mingle-logo.svg"
+          alt="Mingle social app logo"
+          width="300"
+          height="200"
+          border="0"
           style="display: block; width: 100%; max-width: 300px; height: auto;"
-        /> 
+        />
         <p>Welcome to Mingle social app</p>
-        <p>Feel free to share ideas and how you feel on our platform, react on other people's post</p>
+        <p>Feel free to share ideas and how you feel on our platform, react on other people's posts</p>
         <p>&copy; ${new Date().getFullYear()} · Mini Social Media app</p>
         <p>Made with ❤️ by Group 20</p>
       </div>
     `,
     });
-    console.log("Email sent successfully", info.messageId);
-    return info;
+
+    if (error) {
+      console.error("[email] Failed to send welcome email:", error.message);
+      throw new Error(error.message);
+    }
+
+    console.log("[email] Welcome email sent successfully", data?.id);
+    return data;
   } catch (error) {
     console.error("Error sending email:", error);
     throw error;
