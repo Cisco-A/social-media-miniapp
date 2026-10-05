@@ -18,7 +18,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:5174",
-      "https://social-media-miniapp-production.up.railway.app",
+      "https://social-media-miniapp.vercel.app",
     ],
     credentials: true,
   }),
