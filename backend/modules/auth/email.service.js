@@ -81,11 +81,30 @@ dotenv.config();
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
+  connectionTimeout: 10000, // 10s — fail fast instead of hanging
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
+  tls: {
+    rejectUnauthorized: false, // allow self-signed certs in some cloud envs
+  },
+});
+
+transporter.verify((error) => {
+  if (error) {
+    console.error(
+      "[email] SMTP transporter verification failed:",
+      error.message,
+    );
+  } else {
+    console.log("[email] SMTP transporter is ready");
+  }
 });
 
 // await transporter.verify();
