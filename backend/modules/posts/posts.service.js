@@ -73,7 +73,8 @@ const getPostsService = async (query = {}) => {
 			.sort({ createdAt: -1 })
 			.skip(skip)
 			.limit(limit)
-			.populate("author", authorFields),
+			.populate("author", authorFields)
+			.populate({ path: "comments", populate: { path: "author", select: authorFields } }),
 		Post.countDocuments(),
 	]);
 
@@ -101,7 +102,8 @@ const getMyPostsService = async (authorId, query = {}) => {
 			.sort({ createdAt: -1 })
 			.skip(skip)
 			.limit(limit)
-			.populate("author", authorFields),
+			.populate("author", authorFields)
+			.populate({ path: "comments", populate: { path: "author", select: authorFields } }),
 		Post.countDocuments(filter),
 	]);
 
@@ -123,7 +125,9 @@ const getPostByIdService = async (postId) => {
 		return invalidIdResult();
 	}
 
-	const post = await Post.findById(postId).populate("author", authorFields);
+	const post = await Post.findById(postId)
+		.populate("author", authorFields)
+		.populate({ path: "comments", populate: { path: "author", select: authorFields } });
 
 	if (!post) {
 		return {

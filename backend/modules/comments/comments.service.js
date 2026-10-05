@@ -1,4 +1,5 @@
 import Comment from "./comments.schema.js";
+import Post from "../posts/posts.schema.js";
 
 export const getCommentsByPost = async (postId) => {
 	return Comment.find({ post: postId })
@@ -11,6 +12,12 @@ export const createComment = async ({ postId, authorId, content }) => {
 		post: postId,
 		author: authorId,
 		content,
+	});
+
+	// Keep the post's comments array and count in sync
+	await Post.findByIdAndUpdate(postId, {
+		$push: { comments: comment._id },
+		$inc: { commentCount: 1 },
 	});
 
 	return comment.populate("author", "username displayName avatarUrl");
@@ -39,6 +46,12 @@ export const deleteComment = async (commentId, authorId) => {
 	if (!comment) {
 		throw new Error("Comment not found or you are not authorized to delete it");
 	}
+
+	// Keep the post's comments array and count in sync
+	await Post.findByIdAndUpdate(comment.post, {
+		$pull: { comments: comment._id },
+		$inc: { commentCount: -1 },
+	});
 
 	return comment;
 };
