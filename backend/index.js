@@ -1,26 +1,25 @@
-
-
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-
 
 import connectDB from "./config/db.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import commentsRoutes from "./modules/comments/comments.routes.js";
 import userRoutes from "./modules/users/users.routes.js";
-import postRoutes from "./modules/posts/posts.routes.js"
+import postRoutes from "./modules/posts/posts.routes.js";
 import LikesRoutes from "./modules/likes/likes.routes.js";
 
 dotenv.config();
-
-
 
 const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://social-media-miniapp-production.up.railway.app",
+    ],
     credentials: true,
   }),
 );
