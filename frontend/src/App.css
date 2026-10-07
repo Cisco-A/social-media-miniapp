@@ -455,6 +455,12 @@ a {
   background: #f2f3fa;
   color: #44485c;
   text-decoration: none;
+  cursor: pointer;
+}
+
+.profile-post:focus-visible {
+  outline: 3px solid #625cf0;
+  outline-offset: 3px;
 }
 
 .profile-post img {

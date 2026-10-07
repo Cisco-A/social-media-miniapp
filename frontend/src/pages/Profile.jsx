@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
@@ -350,10 +351,11 @@ function Profile() {
             ) : (
               <div className="post-grid">
                 {posts.map((post) => (
-                  <article
+                  <Link
                     aria-label={`Post: ${post.content}`}
                     className="profile-post"
                     key={post._id}
+                    to={`/posts/${post._id}`}
                   >
                     {post.images?.[0] ? (
                       <img
@@ -363,7 +365,7 @@ function Profile() {
                     ) : (
                       <span className="profile-post-text">{post.content}</span>
                     )}
-                  </article>
+                  </Link>
                 ))}
               </div>
             )}
