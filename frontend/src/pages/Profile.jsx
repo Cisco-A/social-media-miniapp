@@ -38,6 +38,8 @@ function Profile() {
   const [hasMorePosts, setHasMorePosts] = useState(false);
   const [isPostsLoading, setIsPostsLoading] = useState(true);
   const [isLoadingMorePosts, setIsLoadingMorePosts] = useState(false);
+  const [openPostMenuId, setOpenPostMenuId] = useState(null);
+  const [deletingPostId, setDeletingPostId] = useState(null);
   const [postsError, setPostsError] = useState("");
 
   useEffect(() => {
@@ -116,6 +118,31 @@ function Profile() {
       );
     } finally {
       setIsLoadingMorePosts(false);
+    }
+  }
+
+  async function handleDeletePost(post) {
+    setOpenPostMenuId(null);
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this post? This action cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    setOpenPostMenuId(post._id);
+    setDeletingPostId(post._id);
+
+    try {
+      await api.delete(`/posts/${post._id}`);
+      setPosts((currentPosts) =>
+        currentPosts.filter((currentPost) => currentPost._id !== post._id),
+      );
+      setPostCount((currentCount) => Math.max(0, currentCount - 1));
+      toast.success("Post deleted successfully.");
+    } catch (error) {
+      toast.error(error.response?.data?.message ?? "Unable to delete this post.");
+    } finally {
+      setDeletingPostId(null);
     }
   }
 
@@ -351,21 +378,52 @@ function Profile() {
             ) : (
               <div className="post-grid">
                 {posts.map((post) => (
-                  <Link
-                    aria-label={`Post: ${post.content}`}
-                    className="profile-post"
-                    key={post._id}
-                    to={`/posts/${post._id}`}
-                  >
-                    {post.images?.[0] ? (
-                      <img
-                        src={post.images[0]}
-                        alt={post.content || "Your post"}
-                      />
-                    ) : (
-                      <span className="profile-post-text">{post.content}</span>
+                  <div className="profile-post-item" key={post._id}>
+                    <Link
+                      aria-label={`Post: ${post.content}`}
+                      className="profile-post"
+                      to={`/posts/${post._id}`}
+                    >
+                      {post.images?.[0] ? (
+                        <img
+                          src={post.images[0]}
+                          alt={post.content || "Your post"}
+                        />
+                      ) : (
+                        <span className="profile-post-text">{post.content}</span>
+                      )}
+                    </Link>
+
+                    <button
+                      aria-expanded={openPostMenuId === post._id}
+                      aria-label={`More options for post: ${post.content}`}
+                      className="profile-post-menu-button"
+                      disabled={Boolean(deletingPostId)}
+                      onClick={() =>
+                        setOpenPostMenuId((currentId) =>
+                          currentId === post._id ? null : post._id,
+                        )
+                      }
+                      type="button"
+                    >
+                      <span aria-hidden="true">⋯</span>
+                    </button>
+
+                    {openPostMenuId === post._id && (
+                      <div className="profile-post-menu">
+                        <button
+                          className="profile-post-delete-button"
+                          disabled={Boolean(deletingPostId)}
+                          onClick={() => handleDeletePost(post)}
+                          type="button"
+                        >
+                          {deletingPostId === post._id
+                            ? "Deleting…"
+                            : "Delete post"}
+                        </button>
+                      </div>
                     )}
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
